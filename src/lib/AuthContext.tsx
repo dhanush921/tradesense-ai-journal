@@ -63,16 +63,13 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
     }
   };
 
- useEffect(() => {
-  const unsubscribe = onAuthStateChanged(auth, async (currentUser) => {
-    try {
+  useEffect(() => {
+    const unsubscribe = onAuthStateChanged(auth, async (currentUser) => {
       setUser(currentUser);
-
       if (currentUser) {
+        // Fetch or create user settings in Firestore
         const settingsRef = doc(db, "settings", currentUser.uid);
-
         const settingsSnap = await getDoc(settingsRef);
-
         if (settingsSnap.exists()) {
           setUserSettings(settingsSnap.data());
         } else {
@@ -81,39 +78,40 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
             currency: "USD",
             theme: "dark",
             language: "en",
-            timezone:
-              Intl.DateTimeFormat().resolvedOptions().timeZone || "UTC",
+            timezone: Intl.DateTimeFormat().resolvedOptions().timeZone || "UTC",
+            brokerSettings: {
+              defaultLotSize: 0.1,
+              defaultRiskPct: 1,
+              defaultBroker: "MetaTrader 5",
+            },
+            notifications: {
+              dailyReminder: true,
+              summaries: true,
+              riskAlert: true,
+              overtradingAlert: true,
+              revengeTradingAlert: true,
+            },
+            createdAt: new Date().toISOString(),
           };
-
           await setDoc(settingsRef, defaultSettings);
           setUserSettings(defaultSettings);
         }
       } else {
         setUserSettings(null);
       }
-    } catch (error) {
-      console.error("Auth initialization error:", error);
-      setUserSettings(null);
-    } finally {
       setLoading(false);
-    }
-  });
+    });
 
-  return () => unsubscribe();
-}, []);
+    return () => unsubscribe();
+  }, [user]);
 
- const logout = async () => {
-  try {
+  const logout = async () => {
     setLoading(true);
     await firebaseSignOut(auth);
     setUser(null);
     setUserSettings(null);
-  } catch (error) {
-    console.error(error);
-  } finally {
     setLoading(false);
-  }
-};
+  };
 
   return (
     <AuthContext.Provider value={{ user, loading, logout, userSettings, refreshSettings }}>
