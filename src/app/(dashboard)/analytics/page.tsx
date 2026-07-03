@@ -5,22 +5,37 @@ import { useAuth } from "@/lib/AuthContext";
 import { collection, query, where, getDocs } from "firebase/firestore";
 import { db } from "@/lib/firebase";
 import { Trade, calculateTradeProfit } from "@/lib/tradeUtils";
-import {
-  BarChart,
-  Bar,
-  XAxis,
-  YAxis,
-  CartesianGrid,
-  Tooltip,
-  ResponsiveContainer,
-  PieChart,
-  Pie,
-  Cell,
-  LineChart,
-  Line,
-  AreaChart,
-  Area,
-} from "recharts";
+import dynamic from "next/dynamic";
+
+const EquityCurveChart = dynamic(() => import("@/components/AnalyticsCharts").then(mod => mod.EquityCurveChart), {
+  ssr: false,
+  loading: () => <div className="h-64 bg-gray-800/10 animate-pulse rounded-xl" />,
+});
+
+const DrawdownCurveChart = dynamic(() => import("@/components/AnalyticsCharts").then(mod => mod.DrawdownCurveChart), {
+  ssr: false,
+  loading: () => <div className="h-64 bg-gray-800/10 animate-pulse rounded-xl" />,
+});
+
+const WinLossPieChart = dynamic(() => import("@/components/AnalyticsCharts").then(mod => mod.WinLossPieChart), {
+  ssr: false,
+  loading: () => <div className="h-48 bg-gray-800/10 animate-pulse rounded-xl" />,
+});
+
+const StrategyBarChart = dynamic(() => import("@/components/AnalyticsCharts").then(mod => mod.StrategyBarChart), {
+  ssr: false,
+  loading: () => <div className="h-52 bg-gray-800/10 animate-pulse rounded-xl" />,
+});
+
+const WeekdayBarChart = dynamic(() => import("@/components/AnalyticsCharts").then(mod => mod.WeekdayBarChart), {
+  ssr: false,
+  loading: () => <div className="h-60 bg-gray-800/10 animate-pulse rounded-xl" />,
+});
+
+const AssetBarChart = dynamic(() => import("@/components/AnalyticsCharts").then(mod => mod.AssetBarChart), {
+  ssr: false,
+  loading: () => <div className="h-60 bg-gray-800/10 animate-pulse rounded-xl" />,
+});
 import { BarChart3, TrendingUp, Calendar, ShieldAlert, PieChart as PieIcon, Hourglass, Layers } from "lucide-react";
 
 export default function Analytics() {
@@ -168,23 +183,7 @@ export default function Analytics() {
           <h2 className="text-sm font-bold text-gray-200 mb-4 flex items-center gap-1.5">
             <TrendingUp className="h-4 w-4 text-blue-400" /> Account Equity curve
           </h2>
-          <div className="h-64">
-            <ResponsiveContainer width="100%" height="100%">
-              <AreaChart data={equityData}>
-                <defs>
-                  <linearGradient id="colorEquity" x1="0" y1="0" x2="0" y2="1">
-                    <stop offset="5%" stopColor="#3b82f6" stopOpacity={0.15} />
-                    <stop offset="95%" stopColor="#3b82f6" stopOpacity={0} />
-                  </linearGradient>
-                </defs>
-                <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.02)" />
-                <XAxis dataKey="name" stroke="#6b7280" fontSize={10} tickLine={false} />
-                <YAxis stroke="#6b7280" fontSize={10} tickLine={false} tickFormatter={(val) => `$${val}`} />
-                <Tooltip contentStyle={{ backgroundColor: "#0f172a", border: "1px solid rgba(255,255,255,0.1)" }} />
-                <Area type="monotone" dataKey="equity" stroke="#3b82f6" strokeWidth={2} fillOpacity={1} fill="url(#colorEquity)" />
-              </AreaChart>
-            </ResponsiveContainer>
-          </div>
+          <EquityCurveChart data={equityData} />
         </div>
 
         {/* Drawdown Curve */}
@@ -192,23 +191,7 @@ export default function Analytics() {
           <h2 className="text-sm font-bold text-gray-200 mb-4 flex items-center gap-1.5">
             <ShieldAlert className="h-4 w-4 text-red-400" /> Drawdown Curve (%)
           </h2>
-          <div className="h-64">
-            <ResponsiveContainer width="100%" height="100%">
-              <AreaChart data={equityData}>
-                <defs>
-                  <linearGradient id="colorDD" x1="0" y1="0" x2="0" y2="1">
-                    <stop offset="5%" stopColor="#ef4444" stopOpacity={0.15} />
-                    <stop offset="95%" stopColor="#ef4444" stopOpacity={0} />
-                  </linearGradient>
-                </defs>
-                <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.02)" />
-                <XAxis dataKey="name" stroke="#6b7280" fontSize={10} tickLine={false} />
-                <YAxis stroke="#6b7280" fontSize={10} tickLine={false} tickFormatter={(val) => `${val}%`} />
-                <Tooltip contentStyle={{ backgroundColor: "#0f172a", border: "1px solid rgba(255,255,255,0.1)" }} />
-                <Area type="monotone" dataKey="drawdown" stroke="#ef4444" strokeWidth={2} fillOpacity={1} fill="url(#colorDD)" />
-              </AreaChart>
-            </ResponsiveContainer>
-          </div>
+          <DrawdownCurveChart data={equityData} />
         </div>
       </div>
 
@@ -219,26 +202,7 @@ export default function Analytics() {
           <h2 className="text-sm font-bold text-gray-200 mb-4 flex items-center gap-1.5">
             <PieIcon className="h-4 w-4 text-emerald-400" /> Win / Loss distribution
           </h2>
-          <div className="h-48 flex items-center justify-center">
-            <ResponsiveContainer width="100%" height="100%">
-              <PieChart>
-                <Pie
-                  data={winLossData}
-                  cx="50%"
-                  cy="50%"
-                  innerRadius={60}
-                  outerRadius={80}
-                  paddingAngle={5}
-                  dataKey="value"
-                >
-                  {winLossData.map((entry, index) => (
-                    <Cell key={`cell-${index}`} fill={entry.color} />
-                  ))}
-                </Pie>
-                <Tooltip contentStyle={{ backgroundColor: "#0f172a", border: "1px solid rgba(255,255,255,0.1)" }} />
-              </PieChart>
-            </ResponsiveContainer>
-          </div>
+          <WinLossPieChart data={winLossData} />
           <div className="flex justify-center gap-6 mt-4 text-xs font-semibold text-gray-400">
             <div className="flex items-center gap-1.5">
               <span className="w-2.5 h-2.5 rounded-full bg-emerald-500" />
@@ -256,17 +220,7 @@ export default function Analytics() {
           <h2 className="text-sm font-bold text-gray-200 mb-4 flex items-center gap-1.5">
             <Layers className="h-4 w-4 text-purple-400" /> Profitability by Strategy
           </h2>
-          <div className="h-52">
-            <ResponsiveContainer width="100%" height="100%">
-              <BarChart data={strategyData}>
-                <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.02)" />
-                <XAxis dataKey="name" stroke="#6b7280" fontSize={10} tickLine={false} />
-                <YAxis stroke="#6b7280" fontSize={10} tickLine={false} />
-                <Tooltip contentStyle={{ backgroundColor: "#0f172a", border: "1px solid rgba(255,255,255,0.1)" }} />
-                <Bar dataKey="profit" fill="#818cf8" radius={[4, 4, 0, 0]} />
-              </BarChart>
-            </ResponsiveContainer>
-          </div>
+          <StrategyBarChart data={strategyData} />
         </div>
       </div>
 
@@ -277,17 +231,7 @@ export default function Analytics() {
           <h2 className="text-sm font-bold text-gray-200 mb-4 flex items-center gap-1.5">
             <Calendar className="h-4 w-4 text-yellow-400" /> Net Profit by Weekday
           </h2>
-          <div className="h-60">
-            <ResponsiveContainer width="100%" height="100%">
-              <BarChart data={weekdayData}>
-                <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.02)" />
-                <XAxis dataKey="name" stroke="#6b7280" fontSize={10} tickLine={false} />
-                <YAxis stroke="#6b7280" fontSize={10} tickLine={false} />
-                <Tooltip contentStyle={{ backgroundColor: "#0f172a", border: "1px solid rgba(255,255,255,0.1)" }} />
-                <Bar dataKey="profit" fill="#fbbf24" radius={[4, 4, 0, 0]} />
-              </BarChart>
-            </ResponsiveContainer>
-          </div>
+          <WeekdayBarChart data={weekdayData} />
         </div>
 
         {/* Asset Class performance */}
@@ -295,17 +239,7 @@ export default function Analytics() {
           <h2 className="text-sm font-bold text-gray-200 mb-4 flex items-center gap-1.5">
             <Hourglass className="h-4 w-4 text-emerald-400" /> Performance by Asset Class
           </h2>
-          <div className="h-60">
-            <ResponsiveContainer width="100%" height="100%">
-              <BarChart data={assetData}>
-                <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.02)" />
-                <XAxis dataKey="name" stroke="#6b7280" fontSize={10} tickLine={false} />
-                <YAxis stroke="#6b7280" fontSize={10} tickLine={false} />
-                <Tooltip contentStyle={{ backgroundColor: "#0f172a", border: "1px solid rgba(255,255,255,0.1)" }} />
-                <Bar dataKey="profit" fill="#10b981" radius={[4, 4, 0, 0]} />
-              </BarChart>
-            </ResponsiveContainer>
-          </div>
+          <AssetBarChart data={assetData} />
         </div>
       </div>
     </div>

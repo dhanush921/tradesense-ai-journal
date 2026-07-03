@@ -5,7 +5,7 @@ import { useAuth } from "@/lib/AuthContext";
 import { collection, query, where, getDocs, addDoc } from "firebase/firestore";
 import { db } from "@/lib/firebase";
 import { Trade, calculateMetrics, calculateTradeProfit } from "@/lib/tradeUtils";
-import { jsPDF } from "jspdf";
+// jsPDF is lazy-loaded on demand inside handleGeneratePDF to avoid adding ~200KB to the initial bundle
 import { Loader2, Download, Upload, FileText, CheckCircle, AlertCircle, FileSpreadsheet } from "lucide-react";
 
 export default function Reports() {
@@ -103,11 +103,12 @@ export default function Reports() {
   };
 
   // jsPDF report generator
-  const handleGeneratePDF = (cycle: "Weekly" | "Monthly" | "Yearly") => {
+  const handleGeneratePDF = async (cycle: "Weekly" | "Monthly" | "Yearly") => {
     if (trades.length === 0) return alert("No trades logged yet.");
     setPdfGenerating(true);
 
     try {
+      const { jsPDF } = await import("jspdf");
       const doc = new jsPDF();
       const metrics = calculateMetrics(trades);
 

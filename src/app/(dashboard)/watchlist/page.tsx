@@ -23,7 +23,12 @@ export default function Watchlist() {
   const [loading, setLoading] = useState(true);
   const [saveLoading, setSaveLoading] = useState(false);
   const [selectedSymbol, setSelectedSymbol] = useState("BTCUSDT");
-
+  const [mounted, setMounted] = useState(false);
+ 
+  useEffect(() => {
+    setMounted(true);
+  }, []);
+ 
   // Form State
   const [symbol, setSymbol] = useState("");
   const [notes, setNotes] = useState("");
@@ -279,11 +284,18 @@ export default function Watchlist() {
           </div>
 
           <div className="flex-1 w-full bg-gray-950 rounded-lg overflow-hidden border border-gray-800 relative">
-            <iframe
-              src={getTvWidgetUrl(selectedSymbol)}
-              className="w-full h-full border-none absolute inset-0"
-              allowFullScreen
-            />
+            {mounted ? (
+              <iframe
+                src={getTvWidgetUrl(selectedSymbol)}
+                className="w-full h-full border-none absolute inset-0"
+                allowFullScreen
+                loading="lazy"
+              />
+            ) : (
+              <div className="absolute inset-0 flex items-center justify-center bg-gray-950 text-gray-500 text-xs">
+                Loading TradingView Chart...
+              </div>
+            )}
           </div>
         </div>
       </div>

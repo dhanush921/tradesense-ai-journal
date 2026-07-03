@@ -76,6 +76,10 @@ body {
   transition: all 0.2s;
 }
 
+.glass-input.pl-10 {
+  padding-left: 2.5rem;
+}
+
 .glass-input:focus {
   border-color: rgba(59, 130, 246, 0.5);
   background: rgba(17, 24, 39, 0.75);

@@ -44,7 +44,7 @@ export default function ForgotPasswordPage() {
           <div className="inline-flex h-12 w-12 items-center justify-center rounded-xl bg-gradient-to-tr from-blue-600 to-emerald-500 p-0.5 shadow-lg shadow-blue-500/20">
             <span className="text-lg font-bold text-white tracking-wider">TS</span>
           </div>
-          <h2 className="mt-6 text-3xl font-extrabold tracking-tight bg-gradient-to-r from-blue-400 to-emerald-400 bg-clip-text text-transparent">
+          <h2 className="mt-6 text-3xl font-extrabold tracking-normal bg-gradient-to-r from-blue-400 to-emerald-400 bg-clip-text text-transparent">
             Reset password
           </h2>
           <p className="mt-2 text-sm text-gray-400">
