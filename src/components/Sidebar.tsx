@@ -19,8 +19,20 @@ import {
   User as UserIcon,
   Menu,
   X,
-  Compass,
 } from "lucide-react";
+
+const menuItems = [
+  { name: "Dashboard", href: "/dashboard", icon: LayoutDashboard },
+  { name: "Journal", href: "/journal", icon: BookOpen },
+  { name: "New Trade", href: "/trade-entry", icon: PlusSquare },
+  { name: "Analytics", href: "/analytics", icon: BarChart3 },
+  { name: "Psychology", href: "/psychology", icon: BrainCircuit },
+  { name: "Watchlist", href: "/watchlist", icon: Eye },
+  { name: "Goals", href: "/goals", icon: Target },
+  { name: "AI Coach", href: "/ai-coach", icon: MessageSquare },
+  { name: "Reports", href: "/reports", icon: FileText },
+  { name: "Settings", href: "/settings", icon: Settings },
+];
 
 export default function Sidebar() {
   const pathname = usePathname();
@@ -28,114 +40,79 @@ export default function Sidebar() {
   const { user, logout } = useAuth();
   const [mobileOpen, setMobileOpen] = useState(false);
 
-  const menuItems = [
-    { name: "Dashboard", href: "/dashboard", icon: LayoutDashboard },
-    { name: "Trade Journal", href: "/journal", icon: BookOpen },
-    { name: "New Entry", href: "/trade-entry", icon: PlusSquare },
-    { name: "Analytics", href: "/analytics", icon: BarChart3 },
-    { name: "Psychology", href: "/psychology", icon: BrainCircuit },
-    { name: "Watchlist", href: "/watchlist", icon: Eye },
-    { name: "Goals", href: "/goals", icon: Target },
-    { name: "AI Coach", href: "/ai-coach", icon: MessageSquare },
-    { name: "Reports & Import", href: "/reports", icon: FileText },
-    { name: "Settings", href: "/settings", icon: Settings },
-  ];
-
   const handleLogout = async () => {
     try {
       await logout();
       router.push("/login");
-    } catch (error) {
-      console.error("Logout error:", error);
-    }
+    } catch {}
+    setMobileOpen(false);
   };
 
-  const navContent = (
-    <div className="flex h-full flex-col justify-between p-4">
-      <div className="space-y-6">
-        {/* Brand logo */}
-        <div className="flex items-center gap-3 px-2">
-          <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-gradient-to-tr from-blue-600 to-emerald-500 p-0.5 shadow-md shadow-blue-500/10">
-            <span className="text-sm font-bold text-white tracking-wider">TS</span>
-          </div>
-          <div>
-            <h1 className="text-base font-bold bg-gradient-to-r from-blue-400 to-emerald-400 bg-clip-text text-transparent">
-              TradeSense AI
-            </h1>
-            <p className="text-[10px] text-gray-500 tracking-wider uppercase font-semibold">
-              Journal SaaS
-            </p>
-          </div>
-        </div>
-
-        {/* Navigation list */}
-        <nav className="space-y-1">
-          {menuItems.map((item) => {
-            const isActive = pathname === item.href;
-            const Icon = item.icon;
-            return (
-              <Link
-                key={item.name}
-                href={item.href}
-                onClick={() => setMobileOpen(false)}
-                className={`flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium transition-all duration-200 ${
-                  isActive
-                    ? "bg-gradient-to-r from-blue-500/10 to-emerald-500/5 text-blue-400 border-l-2 border-blue-500"
-                    : "text-gray-400 hover:bg-gray-800/40 hover:text-gray-200"
-                }`}
-              >
-                <Icon className={`h-5 w-5 ${isActive ? "text-blue-400" : "text-gray-400"}`} />
-                <span>{item.name}</span>
-              </Link>
-            );
-          })}
-        </nav>
-      </div>
-
-      {/* User profile footer */}
-      <div className="space-y-3 border-t border-gray-800/60 pt-4">
-        <div className="flex items-center gap-3 px-2">
-          {user?.photoURL ? (
-            <img
-              src={user.photoURL}
-              alt={user.displayName || "Avatar"}
-              className="h-9 w-9 rounded-full object-cover border border-gray-700"
-            />
-          ) : (
-            <div className="flex h-9 w-9 items-center justify-center rounded-full bg-gradient-to-tr from-gray-700 to-gray-800 text-gray-300">
-              <UserIcon className="h-4 w-4" />
-            </div>
-          )}
-          <div className="min-w-0 flex-1">
-            <p className="truncate text-sm font-medium text-gray-200">
-              {user?.displayName || "Trader"}
-            </p>
-            <p className="truncate text-xs text-gray-500">{user?.email}</p>
-          </div>
-        </div>
-
-        <button
-          onClick={handleLogout}
-          className="flex w-full items-center gap-3 rounded-lg px-3 py-2 text-sm font-medium text-gray-400 hover:bg-red-500/10 hover:text-red-400 transition-colors cursor-pointer"
-        >
-          <LogOut className="h-5 w-5" />
-          <span>Sign Out</span>
-        </button>
-      </div>
-    </div>
+  const NavLinks = () => (
+    <nav className="flex-1 overflow-y-auto py-2 space-y-0.5">
+      {menuItems.map((item) => {
+        const isActive = pathname === item.href;
+        const Icon = item.icon;
+        return (
+          <Link
+            key={item.href}
+            href={item.href}
+            onClick={() => setMobileOpen(false)}
+            className={`flex items-center gap-3 px-4 py-3 text-sm font-medium transition-colors ${
+              isActive
+                ? "bg-blue-600/15 text-blue-400 border-l-2 border-blue-500"
+                : "text-gray-400 hover:bg-gray-800/50 hover:text-gray-200"
+            }`}
+          >
+            <Icon className="h-5 w-5 shrink-0" />
+            <span>{item.name}</span>
+          </Link>
+        );
+      })}
+    </nav>
   );
 
   return (
     <>
-      {/* Desktop Sidebar */}
-      <aside className="hidden md:flex md:w-64 md:flex-col md:fixed md:inset-y-0 bg-[#070b18]/90 border-r border-gray-800/80 backdrop-blur-md z-30">
-        {navContent}
+      {/* ── DESKTOP SIDEBAR ─────────────────────── */}
+      <aside className="hidden md:flex md:w-56 md:flex-col md:fixed md:inset-y-0 bg-[#07090f] border-r border-gray-800/60 z-30">
+        {/* Brand */}
+        <div className="flex items-center gap-2.5 px-4 h-14 border-b border-gray-800/60 shrink-0">
+          <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-gradient-to-tr from-blue-600 to-emerald-500">
+            <span className="text-xs font-bold text-white">TS</span>
+          </div>
+          <div>
+            <p className="text-sm font-bold bg-gradient-to-r from-blue-400 to-emerald-400 bg-clip-text text-transparent leading-none">
+              TradeSense
+            </p>
+            <p className="text-[9px] text-gray-500 uppercase tracking-wider">AI Journal</p>
+          </div>
+        </div>
+
+        <NavLinks />
+
+        {/* User footer */}
+        <div className="border-t border-gray-800/60 p-3 shrink-0">
+          <div className="flex items-center gap-2 px-1 mb-2">
+            <div className="flex h-7 w-7 items-center justify-center rounded-full bg-gray-800 shrink-0">
+              <UserIcon className="h-3.5 w-3.5 text-gray-400" />
+            </div>
+            <p className="truncate text-xs text-gray-400">{user?.email}</p>
+          </div>
+          <button
+            onClick={handleLogout}
+            className="flex w-full items-center gap-2 rounded-lg px-3 py-2 text-xs font-medium text-gray-400 hover:bg-red-500/10 hover:text-red-400 transition-colors cursor-pointer"
+          >
+            <LogOut className="h-4 w-4" />
+            Sign Out
+          </button>
+        </div>
       </aside>
 
-      {/* Mobile Top Navbar */}
-      <header className="flex md:hidden items-center justify-between h-14 px-4 bg-[#070b18]/95 border-b border-gray-800/80 sticky top-0 z-40 w-full">
+      {/* ── MOBILE TOP BAR ──────────────────────── */}
+      <header className="flex md:hidden h-14 items-center justify-between px-4 bg-[#07090f] border-b border-gray-800/60 sticky top-0 z-40 w-full">
         <div className="flex items-center gap-2">
-          <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-gradient-to-tr from-blue-600 to-emerald-500 p-0.5">
+          <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-gradient-to-tr from-blue-600 to-emerald-500">
             <span className="text-xs font-bold text-white">TS</span>
           </div>
           <span className="text-sm font-bold bg-gradient-to-r from-blue-400 to-emerald-400 bg-clip-text text-transparent">
@@ -143,25 +120,69 @@ export default function Sidebar() {
           </span>
         </div>
         <button
-          onClick={() => setMobileOpen(!mobileOpen)}
-          className="text-gray-400 hover:text-white p-1 cursor-pointer"
+          onClick={() => setMobileOpen(true)}
+          className="p-2 text-gray-400 hover:text-white cursor-pointer"
+          aria-label="Open menu"
         >
-          {mobileOpen ? <X className="h-6 w-6" /> : <Menu className="h-6 w-6" />}
+          <Menu className="h-6 w-6" />
         </button>
       </header>
 
-      {/* Mobile Sidebar overlay */}
+      {/* ── MOBILE DRAWER ───────────────────────── */}
       {mobileOpen && (
-        <div className="md:hidden fixed inset-0 z-30 flex">
+        <div className="md:hidden fixed inset-0 z-50 flex">
           {/* Backdrop */}
           <div
-            className="fixed inset-0 bg-black/60 backdrop-blur-sm"
+            className="fixed inset-0 bg-black/70"
             onClick={() => setMobileOpen(false)}
           />
+          {/* Drawer */}
+          <aside className="relative z-50 flex w-72 max-w-[85vw] flex-col bg-[#07090f] border-r border-gray-800 h-full shadow-2xl">
+            {/* Drawer header */}
+            <div className="flex items-center justify-between px-4 h-14 border-b border-gray-800 shrink-0">
+              <div className="flex items-center gap-2">
+                <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-gradient-to-tr from-blue-600 to-emerald-500">
+                  <span className="text-xs font-bold text-white">TS</span>
+                </div>
+                <span className="text-sm font-bold bg-gradient-to-r from-blue-400 to-emerald-400 bg-clip-text text-transparent">
+                  TradeSense AI
+                </span>
+              </div>
+              <button
+                onClick={() => setMobileOpen(false)}
+                className="p-1 text-gray-400 hover:text-white cursor-pointer"
+              >
+                <X className="h-5 w-5" />
+              </button>
+            </div>
 
-          {/* Sidebar Drawer */}
-          <aside className="relative flex w-64 max-w-xs flex-col bg-[#070b18] border-r border-gray-800 h-full animate-slide-in shadow-2xl">
-            {navContent}
+            {/* User info */}
+            <div className="px-4 py-3 border-b border-gray-800/60 shrink-0">
+              <div className="flex items-center gap-2.5">
+                <div className="flex h-9 w-9 items-center justify-center rounded-full bg-gradient-to-tr from-blue-600/30 to-emerald-600/30 border border-gray-700 shrink-0">
+                  <UserIcon className="h-4 w-4 text-gray-300" />
+                </div>
+                <div className="min-w-0">
+                  <p className="text-sm font-medium text-gray-200 truncate">
+                    {user?.displayName || "Trader"}
+                  </p>
+                  <p className="text-xs text-gray-500 truncate">{user?.email}</p>
+                </div>
+              </div>
+            </div>
+
+            <NavLinks />
+
+            {/* Sign out */}
+            <div className="p-3 border-t border-gray-800 shrink-0">
+              <button
+                onClick={handleLogout}
+                className="flex w-full items-center gap-3 rounded-xl px-4 py-3 text-sm font-medium text-gray-400 hover:bg-red-500/10 hover:text-red-400 transition-colors cursor-pointer"
+              >
+                <LogOut className="h-5 w-5" />
+                Sign Out
+              </button>
+            </div>
           </aside>
         </div>
       )}

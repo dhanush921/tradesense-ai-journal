@@ -39,12 +39,25 @@
   --foreground: #f3f4f6;
 }
 
+html, body {
+  width: 100%;
+  max-width: 100vw;
+  overflow-x: hidden;
+}
+
+*, *::before, *::after {
+  box-sizing: border-box;
+}
+
 body {
   background-color: #030712;
   color: #f3f4f6;
   font-family: var(--font-geist-sans), Arial, sans-serif;
   overflow-x: hidden;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
 }
+
 
 /* Glass panel - no backdrop-filter for mobile GPU performance */
 .glass-panel {
