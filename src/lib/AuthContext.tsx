@@ -26,17 +26,15 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
   const [loading, setLoading] = useState(true);
   const [userSettings, setUserSettings] = useState<any>(null);
 
-  const refreshSettings = async () => {
-    if (!user) return;
+  const loadUserSettings = async (currentUser: User) => {
     try {
-      const settingsRef = doc(db, "settings", user.uid);
+      const settingsRef = doc(db, "settings", currentUser.uid);
       const settingsSnap = await getDoc(settingsRef);
       if (settingsSnap.exists()) {
         setUserSettings(settingsSnap.data());
       } else {
-        // Create default settings
         const defaultSettings = {
-          userId: user.uid,
+          userId: currentUser.uid,
           currency: "USD",
           theme: "dark",
           language: "en",
@@ -59,58 +57,54 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
         setUserSettings(defaultSettings);
       }
     } catch (error) {
-      console.error("Error refreshing settings:", error);
+      console.error("Error loading user settings:", error);
+      // Don't block loading on settings error
     }
   };
 
+  const refreshSettings = async () => {
+    if (!user) return;
+    await loadUserSettings(user);
+  };
+
   useEffect(() => {
-    const unsubscribe = onAuthStateChanged(auth, async (currentUser) => {
-      setUser(currentUser);
-      if (currentUser) {
-        // Fetch or create user settings in Firestore
-        const settingsRef = doc(db, "settings", currentUser.uid);
-        const settingsSnap = await getDoc(settingsRef);
-        if (settingsSnap.exists()) {
-          setUserSettings(settingsSnap.data());
-        } else {
-          const defaultSettings = {
-            userId: currentUser.uid,
-            currency: "USD",
-            theme: "dark",
-            language: "en",
-            timezone: Intl.DateTimeFormat().resolvedOptions().timeZone || "UTC",
-            brokerSettings: {
-              defaultLotSize: 0.1,
-              defaultRiskPct: 1,
-              defaultBroker: "MetaTrader 5",
-            },
-            notifications: {
-              dailyReminder: true,
-              summaries: true,
-              riskAlert: true,
-              overtradingAlert: true,
-              revengeTradingAlert: true,
-            },
-            createdAt: new Date().toISOString(),
-          };
-          await setDoc(settingsRef, defaultSettings);
-          setUserSettings(defaultSettings);
-        }
-      } else {
-        setUserSettings(null);
-      }
+    // Set a safety timeout - loading should NEVER stay true for more than 10s
+    const timeout = setTimeout(() => {
       setLoading(false);
+    }, 10000);
+
+    const unsubscribe = onAuthStateChanged(auth, async (currentUser) => {
+      clearTimeout(timeout);
+      try {
+        setUser(currentUser);
+        if (currentUser) {
+          await loadUserSettings(currentUser);
+        } else {
+          setUserSettings(null);
+        }
+      } catch (error) {
+        console.error("Auth state change error:", error);
+      } finally {
+        setLoading(false);
+      }
     });
 
-    return () => unsubscribe();
-  }, [user]);
+    return () => {
+      clearTimeout(timeout);
+      unsubscribe();
+    };
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   const logout = async () => {
-    setLoading(true);
-    await firebaseSignOut(auth);
-    setUser(null);
-    setUserSettings(null);
-    setLoading(false);
+    try {
+      await firebaseSignOut(auth);
+      setUser(null);
+      setUserSettings(null);
+    } catch (error) {
+      console.error("Logout error:", error);
+    }
+    // Never set loading=true here — avoids infinite spinner on logout
   };
 
   return (
