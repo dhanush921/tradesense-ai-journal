@@ -19,7 +19,7 @@ import {
 export function EquityCurveChart({ data }: { data: any[] }) {
   return (
     <div className="h-64">
-      <ResponsiveContainer width="100%" height="100%">
+      <ResponsiveContainer width="100%" height={256}>
         <AreaChart data={data}>
           <defs>
             <linearGradient id="colorEquity" x1="0" y1="0" x2="0" y2="1">
@@ -41,7 +41,7 @@ export function EquityCurveChart({ data }: { data: any[] }) {
 export function DrawdownCurveChart({ data }: { data: any[] }) {
   return (
     <div className="h-64">
-      <ResponsiveContainer width="100%" height="100%">
+      <ResponsiveContainer width="100%" height={256}>
         <AreaChart data={data}>
           <defs>
             <linearGradient id="colorDD" x1="0" y1="0" x2="0" y2="1">
@@ -63,7 +63,7 @@ export function DrawdownCurveChart({ data }: { data: any[] }) {
 export function WinLossPieChart({ data }: { data: any[] }) {
   return (
     <div className="h-48 flex items-center justify-center">
-      <ResponsiveContainer width="100%" height="100%">
+      <ResponsiveContainer width="100%" height={192}>
         <PieChart>
           <Pie
             data={data}
@@ -88,7 +88,7 @@ export function WinLossPieChart({ data }: { data: any[] }) {
 export function StrategyBarChart({ data }: { data: any[] }) {
   return (
     <div className="h-52">
-      <ResponsiveContainer width="100%" height="100%">
+      <ResponsiveContainer width="100%" height={208}>
         <BarChart data={data}>
           <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.02)" />
           <XAxis dataKey="name" stroke="#6b7280" fontSize={10} tickLine={false} />
@@ -104,7 +104,7 @@ export function StrategyBarChart({ data }: { data: any[] }) {
 export function WeekdayBarChart({ data }: { data: any[] }) {
   return (
     <div className="h-60">
-      <ResponsiveContainer width="100%" height="100%">
+      <ResponsiveContainer width="100%" height={240}>
         <BarChart data={data}>
           <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.02)" />
           <XAxis dataKey="name" stroke="#6b7280" fontSize={10} tickLine={false} />
@@ -120,7 +120,7 @@ export function WeekdayBarChart({ data }: { data: any[] }) {
 export function AssetBarChart({ data }: { data: any[] }) {
   return (
     <div className="h-60">
-      <ResponsiveContainer width="100%" height="100%">
+      <ResponsiveContainer width="100%" height={240}>
         <BarChart data={data}>
           <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.02)" />
           <XAxis dataKey="name" stroke="#6b7280" fontSize={10} tickLine={false} />

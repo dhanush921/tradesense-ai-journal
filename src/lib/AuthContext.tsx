@@ -78,7 +78,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
       try {
         setUser(currentUser);
         if (currentUser) {
-          await loadUserSettings(currentUser);
+          loadUserSettings(currentUser);
         } else {
           setUserSettings(null);
         }
