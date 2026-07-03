@@ -2,7 +2,7 @@ import { initializeApp, getApps, getApp } from "firebase/app";
 import { getAuth } from "firebase/auth";
 import { getFirestore } from "firebase/firestore";
 import { getStorage } from "firebase/storage";
-import { getAnalytics, Analytics } from "firebase/analytics";
+import { getAnalytics } from "firebase/analytics";
 
 const firebaseConfig = {
   apiKey: "AIzaSyB7-29675xOwZV6Mc90Duzn-7Vsau2UwCQ",
@@ -20,9 +20,7 @@ const auth = getAuth(app);
 const db = typeof window !== "undefined" ? getFirestore(app) : null as any;
 const storage = typeof window !== "undefined" ? getStorage(app) : null as any;
 
-let analytics: Analytics | null = null;
-if (typeof window !== "undefined") {
-  analytics = getAnalytics(app);
-}
+// Analytics intentionally deferred — avoid blocking main thread on mobile
+let analytics: null = null;
 
 export { app, auth, db, storage, analytics };

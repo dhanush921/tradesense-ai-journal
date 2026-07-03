@@ -68,10 +68,10 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
   };
 
   useEffect(() => {
-    // Set a safety timeout - loading should NEVER stay true for more than 10s
+    // Safety timeout - max 3s on slow connections
     const timeout = setTimeout(() => {
       setLoading(false);
-    }, 10000);
+    }, 3000);
 
     const unsubscribe = onAuthStateChanged(auth, async (currentUser) => {
       clearTimeout(timeout);
