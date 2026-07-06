@@ -52,6 +52,10 @@ export default function TradingViewChart({ symbol = "NASDAQ:AAPL", interval = "D
   const widgetRef = useRef<any>(null);
 
   useEffect(() => {
+    setChartSymbol(symbol);
+  }, [symbol]);
+
+  useEffect(() => {
     if (!containerRef.current) return;
     containerRef.current.innerHTML = "";
 
