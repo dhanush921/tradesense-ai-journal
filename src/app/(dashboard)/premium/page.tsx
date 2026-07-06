@@ -3,6 +3,8 @@
 import React, { useState, useEffect } from "react";
 import { Check, Crown, Zap, Star, Rocket, X, Loader2, BadgeCheck, AlertCircle } from "lucide-react";
 import { useAuth } from "@/lib/AuthContext";
+import { doc, setDoc, getDoc, updateDoc } from "firebase/firestore";
+import { db } from "@/lib/firebase";
 
 declare global {
   interface Window {
@@ -187,6 +189,38 @@ export default function PremiumPage() {
 
             const verifyData = await verifyRes.json();
             if (!verifyRes.ok) throw new Error(verifyData.error || "Verification failed");
+
+            // 4. Write plan to Firestore from client (browser) — avoids Node.js SDK issues
+            const planExpiry = new Date(verifyData.expiresAt);
+            const settingsRef = doc(db, "settings", user.uid);
+            const snap = await getDoc(settingsRef);
+            const planData = {
+              plan: planId,
+              planBilling: billing,
+              planActivatedAt: new Date().toISOString(),
+              planExpiresAt: planExpiry.toISOString(),
+              lastPaymentId: response.razorpay_payment_id,
+              lastOrderId: response.razorpay_order_id,
+              lastPaymentAmount: orderData.amount,
+            };
+            if (snap.exists()) {
+              await updateDoc(settingsRef, planData);
+            } else {
+              await setDoc(settingsRef, { userId: user.uid, ...planData });
+            }
+
+            // 5. Log payment record
+            await setDoc(doc(db, "payments", response.razorpay_payment_id), {
+              userId: user.uid,
+              userEmail: user.email,
+              plan: planId,
+              billing,
+              amount: orderData.amount,
+              orderId: response.razorpay_order_id,
+              paymentId: response.razorpay_payment_id,
+              status: "captured",
+              paidAt: new Date().toISOString(),
+            });
 
             await refreshSettings();
             showToast("success", `🎉 ${planId.charAt(0).toUpperCase() + planId.slice(1)} plan activated! Welcome aboard.`);
