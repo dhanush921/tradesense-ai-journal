@@ -5,6 +5,12 @@ import { useAuth } from "@/lib/AuthContext";
 import { collection, query, where, getDocs, addDoc, deleteDoc, doc, updateDoc } from "firebase/firestore";
 import { db } from "@/lib/firebase";
 import { Loader2, Plus, Trash2, Bell, AlertCircle, TrendingUp, Check, ExternalLink } from "lucide-react";
+import dynamic from "next/dynamic";
+
+const TradingViewChart = dynamic(() => import("@/components/TradingViewChart"), {
+  ssr: false,
+  loading: () => <div className="h-[480px] w-full animate-pulse rounded-xl bg-gray-800/10" />,
+});
 
 interface WatchlistItem {
   id?: string;
@@ -16,6 +22,52 @@ interface WatchlistItem {
   status: "active" | "triggered" | "cancelled";
   createdAt: string;
 }
+
+const formatSymbolForTradingView = (sym: string): string => {
+  let formatted = sym.toUpperCase().trim().replace("/", "");
+  
+  if (formatted.includes(":")) {
+    return formatted;
+  }
+
+  // Cryptocurrencies
+  const cryptos = ["BTC", "ETH", "SOL", "ADA", "DOT", "XRP", "DOGE", "SHIB", "AVAX", "LINK", "LTC"];
+  if (cryptos.includes(formatted)) {
+    return `BINANCE:${formatted}USDT`;
+  }
+  
+  // Forex
+  const forex = ["EURUSD", "GBPUSD", "USDJPY", "AUDUSD", "USDCAD", "USDCHF", "NZDUSD"];
+  if (forex.includes(formatted)) {
+    return `FX:${formatted}`;
+  }
+  
+  // Tech Stocks
+  const stocks = ["AAPL", "TSLA", "MSFT", "NVDA", "AMZN", "META", "NFLX", "GOOGL", "NFLX"];
+  if (stocks.includes(formatted)) {
+    return `NASDAQ:${formatted}`;
+  }
+
+  // Indian Markets
+  if (formatted === "NIFTY" || formatted === "BANKNIFTY" || formatted === "RELIANCE" || formatted === "TCS" || formatted === "INFY") {
+    return `NSE:${formatted}`;
+  }
+
+  // Commodities
+  if (formatted === "GOLD") {
+    return "TVC:GOLD";
+  }
+  if (formatted === "SILVER") {
+    return "TVC:SILVER";
+  }
+
+  // Default crypto format
+  if (formatted.length <= 4) {
+    return `BINANCE:${formatted}USDT`;
+  }
+
+  return `BINANCE:${formatted}`;
+};
 
 export default function Watchlist() {
   const { user } = useAuth();
@@ -64,9 +116,10 @@ export default function Watchlist() {
     if (!user || !symbol) return;
     setSaveLoading(true);
 
+    const rawSymbol = symbol.toUpperCase().replace("/", "").trim();
     const newItem: WatchlistItem = {
       userId: user.uid,
-      symbol: symbol.toUpperCase().replace("/", ""),
+      symbol: rawSymbol,
       notes,
       target: parseFloat(target) || 0,
       alertPrice: parseFloat(alertPrice) || 0,
@@ -110,21 +163,7 @@ export default function Watchlist() {
     }
   };
 
-  // Safe TradingView Chart URL Generator
-  const getTvWidgetUrl = (sym: string) => {
-    // Format symbols: BINANCE:BTCUSDT, NASDAQ:AAPL, FX:EURUSD
-    let formattedSym = sym.toUpperCase();
-    if (!formattedSym.includes(":")) {
-      if (formattedSym === "EURUSD" || formattedSym === "GBPUSD") {
-        formattedSym = `FX:${formattedSym}`;
-      } else if (formattedSym === "AAPL" || formattedSym === "TSLA" || formattedSym === "MSFT") {
-        formattedSym = `NASDAQ:${formattedSym}`;
-      } else {
-        formattedSym = `BINANCE:${formattedSym}`;
-      }
-    }
-    return `https://s.tradingview.com/widgetembed/?frameElementId=tradingview_chart&symbol=${formattedSym}&interval=D&hidesidetoolbar=1&symboledit=1&saveimage=1&toolbarbg=070b18&theme=dark`;
-  };
+  const tvSymbol = formatSymbolForTradingView(selectedSymbol);
 
   return (
     <div className="space-y-6">
@@ -265,34 +304,29 @@ export default function Watchlist() {
         </div>
 
         {/* Right Column: Embedded TradingView Widget */}
-        <div className="lg:col-span-2 glass-card rounded-xl p-5 flex flex-col justify-between min-h-[480px]">
-          <div className="flex justify-between items-center border-b border-gray-800 pb-3 mb-4">
-            <div className="flex items-center gap-2">
-              <TrendingUp className="h-4.5 w-4.5 text-emerald-400" />
-              <h3 className="text-sm font-bold text-gray-200">
-                Interactive Chart: <strong className="text-blue-400">{selectedSymbol}</strong>
-              </h3>
+        <div className="lg:col-span-2 space-y-4">
+          <div className="glass-card rounded-xl p-5 flex flex-col justify-between">
+            <div className="flex justify-between items-center border-b border-gray-800 pb-3 mb-4">
+              <div className="flex items-center gap-2">
+                <TrendingUp className="h-4.5 w-4.5 text-emerald-400" />
+                <h3 className="text-sm font-bold text-gray-200">
+                  Interactive Chart: <strong className="text-blue-400">{selectedSymbol}</strong>
+                </h3>
+              </div>
+              <a
+                href={`https://www.tradingview.com/symbols/${tvSymbol}`}
+                target="_blank"
+                rel="noreferrer"
+                className="text-xs text-gray-500 hover:text-white flex items-center gap-1.5"
+              >
+                TradingView <ExternalLink className="h-3.5 w-3.5" />
+              </a>
             </div>
-            <a
-              href={`https://www.tradingview.com/symbols/${selectedSymbol}`}
-              target="_blank"
-              rel="noreferrer"
-              className="text-xs text-gray-500 hover:text-white flex items-center gap-1.5"
-            >
-              TradingView <ExternalLink className="h-3.5 w-3.5" />
-            </a>
-          </div>
 
-          <div className="flex-1 w-full bg-gray-950 rounded-lg overflow-hidden border border-gray-800 relative">
             {mounted ? (
-              <iframe
-                src={getTvWidgetUrl(selectedSymbol)}
-                className="w-full h-full border-none absolute inset-0"
-                allowFullScreen
-                loading="lazy"
-              />
+              <TradingViewChart symbol={tvSymbol} />
             ) : (
-              <div className="absolute inset-0 flex items-center justify-center bg-gray-950 text-gray-500 text-xs">
+              <div className="h-[480px] w-full flex items-center justify-center bg-gray-950 text-gray-500 text-xs rounded-xl">
                 Loading TradingView Chart...
               </div>
             )}
